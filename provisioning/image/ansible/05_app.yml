@@ -1,0 +1,27 @@
+---
+- hosts: guests:extras
+  become: yes
+  become_user: isucon
+  gather_facts: no
+  tasks:
+    - name: mkdir backup
+      file: path=/home/isucon/backup/ state=directory
+    - name: mkdir repos
+      file: path=/home/isucon/repos/ state=directory
+    - name: clean isucon-01.git
+      file: path=/home/isucon/repos/isucon-01.git state=absent
+    - name: clone repos
+      git:
+        repo=git@isucon-01.github.com:basicinc/isucon-01.git
+        dest=/home/isucon/repos/isucon-01.git
+    - name: remove .git
+      file: path=/home/isucon/repos/isucon-01.git/.git state=absent
+    - name: clean provisioning
+      file: path=/home/isucon/repos/isucon-01.git/provisioning state=absent
+    - name: git init
+      shell: "cd /home/isucon/repos/isucon-01.git/ && git init && git add . && git config --global user.email 'test@example.com' && git config --global user.name 'admin' && git commit -m 'Initial commit'"
+    - name: create working copy
+      git:
+        repo=file:///home/isucon/repos/isucon-01.git
+        dest=/home/isucon/isucon-01
+        update=yes

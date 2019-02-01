@@ -1,0 +1,8 @@
+# server access ip file
+hosts
+
+# ansible retry file
+*.retry
+
+# database dump
+image/files/home/isucon/backup/dump.sql.bz2

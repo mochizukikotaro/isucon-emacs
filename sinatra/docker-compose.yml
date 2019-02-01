@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - LANG=C.UTF-8
+    ports:
+      - '9292:9292'
+    tty: true
+    volumes:
+      - .:/app
+      - bundle:/usr/local/bundle:cached
+      - sockets:/var/run/mysqld
+    working_dir: /app
+
+  db:
+    build:
+      context: ./.docker/mysql
+      dockerfile: Dockerfile
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=isuconp
+    ports:
+      - '3306:3306'
+    volumes:
+      - .docker/mysql/my.cnf:/etc/mysql/my.cnf
+      - .docker/mysql/data:/db
+      - sockets:/var/run/mysqld
+      - db_data:/var/lib/mysql
+    working_dir: /db
+
+volumes:
+  db_data:
+  bundle:
+  sockets:
