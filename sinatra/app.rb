@@ -1,7 +1,9 @@
+# coding: utf-8
 require 'sinatra/base'
 require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
+require 'pry'
 
 module Isuconp
   class App < Sinatra::Base
@@ -99,31 +101,26 @@ module Isuconp
 
       def make_posts(results, all_comments: false)
         posts = []
-        results.to_a.each do |post|
-          comment_count = db.prepare('SELECT * FROM `comments` WHERE `post_id` = ?').execute(
+        results.each do |post|
+          comment_count = db.prepare('SELECT count(*) as count FROM `comments` WHERE `post_id` = ?').execute(
             post[:id]
           )
-          post[:comment_count] = comment_count.count
+          post[:comment_count] = comment_count.first[:count]
 
-          query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
+          query = 'SELECT * FROM comments c inner join users u on c.user_id = u.id WHERE c.post_id = ? ORDER BY c.created_at DESC'
           unless all_comments
             query += ' LIMIT 3'
           end
           comments = db.prepare(query).execute(
             post[:id]
           ).to_a
-          comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
-          end
           post[:comments] = comments.reverse
 
           post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
             post[:user_id]
           ).first
 
-          posts.push(post) if post[:user][:del_flg] == 0
+          posts.push(post) if post[:user] && post[:user][:del_flg] == 0
           break if posts.length >= POSTS_PER_PAGE
         end
 
@@ -224,7 +221,7 @@ module Isuconp
     get '/' do
       me = get_session_user()
 
-      results = db.query('SELECT `id`, `user_id`, `body`, `created_at`, `mime` FROM `posts` ORDER BY `created_at` DESC')
+      results = db.query('SELECT id, user_id, body, created_at, mime FROM posts ORDER BY created_at DESC')
       posts = make_posts(results)
 
       erb :index, layout: :layout, locals: { posts: posts, me: me }
