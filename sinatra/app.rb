@@ -328,8 +328,9 @@ module Isuconp
         )
         pid = db.last_id
         # public/image/:id に params["file"][:tempfile].read
-        File.open("public/image/#{pid}.jpg", 'wb') do |f|
-          f.write params['file'][:tempfile].read
+        file_ext = params[:file][:type].split("/")[1].gsub("e", "")
+        File.open("public/image/#{pid}." + file_ext, "wb") do |f|
+          f.write params["file"][:tempfile].read
           @mes = "アップロード成功"
         end
 
