@@ -344,16 +344,7 @@ module Isuconp
         return ""
       end
 
-      post = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
-
-      if (params[:ext] == "jpg" && post[:mime] == "image/jpeg") ||
-          (params[:ext] == "png" && post[:mime] == "image/png") ||
-          (params[:ext] == "gif" && post[:mime] == "image/gif")
-        headers['Content-Type'] = post[:mime]
-        return post[:imgdata]
-      end
-
-      return 404
+      send_file File.join('public', 'image', "#{params[:id]}.#{params[:ext]}")
     end
 
     post '/comment' do
