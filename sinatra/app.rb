@@ -99,6 +99,27 @@ module Isuconp
         end
       end
 
+      def make_posts_for_index(results)
+        posts = []
+        results.each do |post|
+          comment_count = db.prepare('SELECT count(*) as count FROM `comments` WHERE `post_id` = ?').execute(
+            post[:id]
+          )
+          post[:comment_count] = comment_count.first[:count]
+          query = 'SELECT * FROM comments c inner join users u on c.user_id = u.id WHERE c.post_id = ? ORDER BY c.created_at DESC limit 3'
+          comments = db.prepare(query).execute(
+            post[:id]
+          ).to_a
+          post[:comments] = comments.reverse
+          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ? and del_flg = 0 limit 1').execute(
+            post[:user_id]
+          ).first
+          posts.push(post) if post[:user]
+          break if posts.length >= POSTS_PER_PAGE
+        end
+        posts
+      end
+
       def make_posts(results, all_comments: false)
         posts = []
         results.each do |post|
@@ -221,8 +242,8 @@ module Isuconp
     get '/' do
       me = get_session_user()
 
-      results = db.query('SELECT id, user_id, body, created_at, mime FROM posts ORDER BY created_at DESC')
-      posts = make_posts(results)
+      results = db.query('SELECT p.id, p.user_id, p.body, p.created_at, p.mime, u.account_name FROM posts p inner join users u on u.id = p.user_id where u.del_flg = 0 ORDER BY created_at DESC')
+      posts = make_posts_for_index(results)
 
       erb :index, layout: :layout, locals: { posts: posts, me: me }
     end
