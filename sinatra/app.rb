@@ -116,11 +116,11 @@ module Isuconp
           ).to_a
           post[:comments] = comments.reverse
 
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ? and del_flg = 0 limit 1').execute(
             post[:user_id]
           ).first
 
-          posts.push(post) if post[:user] && post[:user][:del_flg] == 0
+          posts.push(post) if post[:user]
           break if posts.length >= POSTS_PER_PAGE
         end
 
