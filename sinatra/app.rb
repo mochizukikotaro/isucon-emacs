@@ -339,14 +339,6 @@ module Isuconp
       end
     end
 
-    get '/image/:id.:ext' do
-      if params[:id].to_i == 0
-        return ""
-      end
-
-      send_file File.join('public', 'image', "#{params[:id]}.#{params[:ext]}")
-    end
-
     post '/comment' do
       me = get_session_user()
 
