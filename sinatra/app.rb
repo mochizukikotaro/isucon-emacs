@@ -323,14 +323,18 @@ module Isuconp
         end
 
         params['file'][:tempfile].rewind
-        query = 'INSERT INTO `posts` (`user_id`, `mime`, `imgdata`, `body`) VALUES (?,?,?,?)'
+        query = 'INSERT INTO `posts` (`user_id`, `mime`, `body`) VALUES (?,?,?)'
         db.prepare(query).execute(
           me[:id],
           mime,
-          params["file"][:tempfile].read,
           params["body"],
         )
         pid = db.last_id
+        # public/image/:id に params["file"][:tempfile].read
+        File.open("public/image/#{pid}.jpg", 'wb') do |f|
+          f.write params['file'][:tempfile].read
+          @mes = "アップロード成功"
+        end
 
         redirect "/posts/#{pid}", 302
       else
