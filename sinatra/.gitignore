@@ -4,3 +4,4 @@ vendor
 
 public/image/*
 !public/image/.keep
+!public/image/0.*
