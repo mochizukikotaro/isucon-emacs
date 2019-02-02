@@ -1,3 +1,6 @@
 .bundle
 vendor
 .docker/mysql/data/*
+
+public/image/*
+!public/image/.keep
